@@ -16,12 +16,12 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DisposableSingleObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class SettingFragmentViewModel extends AndroidViewModel {
-    private final SettingFragmentRepository settingFragmentRepository = new SettingFragmentRepository();
+public class SelectBicycleFragmentViewModel extends AndroidViewModel {
+    private final SelectBicycleFragmentRepository selectBicycleFragmentRepository = new SelectBicycleFragmentRepository();
     @SuppressLint("StaticFieldLeak")
     public Context context;
 
-    public SettingFragmentViewModel(@NonNull Application application) {
+    public SelectBicycleFragmentViewModel(@NonNull Application application) {
         super(application);
         context = application;
     }
@@ -29,7 +29,7 @@ public class SettingFragmentViewModel extends AndroidViewModel {
     MutableLiveData<List<ListObject>> listData = new MutableLiveData<>();
 
     public void setBicycleList(){
-        settingFragmentRepository.setBicycleList(context)
+        selectBicycleFragmentRepository.setBicycleList(context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DisposableSingleObserver<List<ListObject>>() {
@@ -47,7 +47,7 @@ public class SettingFragmentViewModel extends AndroidViewModel {
 
 
     public void selectBicycle(int position){
-        settingFragmentRepository.selectBicycle(context, position)
+        selectBicycleFragmentRepository.selectBicycle(context, position)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DisposableSingleObserver<List<ListObject>>() {

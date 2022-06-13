@@ -6,10 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".mainActivity.MainActivity">
 
-    <fragment
-        xmlns:map="http://schemas.android.com/apk/res-auto"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <fragment xmlns:map="http://schemas.android.com/apk/res-auto"
         android:id="@+id/mapView"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -24,6 +23,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
+        android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
         app:srcCompat="@drawable/custom_login_image"
@@ -41,6 +41,7 @@
         android:layout_marginEnd="80dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
+        android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
         app:srcCompat="@drawable/ic_gps_notfixed"
@@ -48,41 +49,38 @@
         tools:ignore="SpeakableTextPresentCheck" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/selectMapModeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="144dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="visible"
+        android:clickable="true"
+        app:backgroundTint="@color/colorCustomItem"
+        app:rippleColor="@color/black"
+        app:srcCompat="@drawable/ic_map"
+        app:tint="@color/white"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/openSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_margin="16dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="visible"
         android:clickable="true"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
         app:srcCompat="@drawable/ic_action_bike"
         app:tint="@color/white" />
-
-
-
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragmentContainerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/closeBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/white"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="-35dp"
-        android:layout_marginRight="10dp"
-        android:visibility="gone"
-        android:layout_above="@+id/fragmentContainerView"
-        android:background="@drawable/ic_action_close" />
 
 </RelativeLayout>

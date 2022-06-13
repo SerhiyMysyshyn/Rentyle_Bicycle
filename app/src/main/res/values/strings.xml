@@ -4,6 +4,12 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="choose_bike">Виберіть велосипед</string>
+    <string name="choose_time">Виберіть термін оренди</string>
     <string name="run_bike">Підійдіть до найближчого із вибраних велосипедів та натисніть кнопку «Поїхали»</string>
     <string name="run">Поїхали</string>
+
+    <string name="map_main">Основна карта</string>
+    <string name="map_hybrid">Супутникові зображення з дорогами та мітками</string>
+    <string name="map_satellite">Супутникові знімки</string>
+    <string name="map_terrain">Топографічні дані</string>
 </resources>

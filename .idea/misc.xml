@@ -11,6 +11,9 @@
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_gps_notfixed.xml" value="0.343" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_gps_off.xml" value="0.343" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_kids.xml" value="0.343" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_map.xml" value="0.251" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_black_button_background.xml" value="0.3515" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_black_button_background_selected.xml" value="0.316" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_glow_effect.xml" value="0.336" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_list_background.xml" value="0.336" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_login_image.xml" value="0.1945" />
@@ -21,6 +24,7 @@
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/activity_splash_screen.xml" value="0.33" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_list_item.xml" value="0.67" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/fragment_settings.xml" value="0.36666666666666664" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/select_bike_dialog_view.xml" value="0.36666666666666664" />
       </map>
     </option>
   </component>
