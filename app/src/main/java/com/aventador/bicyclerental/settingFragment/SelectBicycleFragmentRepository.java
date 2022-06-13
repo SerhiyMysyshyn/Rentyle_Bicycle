@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
-public class SettingFragmentRepository {
+public class SelectBicycleFragmentRepository {
 
     public List<ListObject> createDataList(Context context){
         ListObject bicycle1 = new ListObject("Orbea Capre","Міські", context.getResources().getDrawable(R.drawable.c_orbea_capre), context.getResources().getDrawable(R.drawable.custom_list_background));

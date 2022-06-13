@@ -2,15 +2,15 @@ package com.aventador.bicyclerental;
 
 public class Bicycle {
 
-    private String id;
-    private String specID;
+    private int id;
+    private int specID;
     private String name;
-    private String coordX;
-    private String coordY;
+    private double coordX;
+    private double coordY;
     private String status;
     private String bType;
 
-    public Bicycle(String id, String specID, String name, String coordX, String coordY, String status, String bType) {
+    public Bicycle(int id, int specID, String name, double coordX, double coordY, String status, String bType) {
         this.id = id;
         this.specID = specID;
         this.name = name;
@@ -20,20 +20,37 @@ public class Bicycle {
         this.bType = bType;
     }
 
-    public String getId() {
+
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public String getSpecID() {
+    public int getSpecID() {
         return specID;
     }
 
-    public void setSpecID(String specID) {
+    public void setSpecID(int specID) {
         this.specID = specID;
+    }
+
+    public double getCoordX() {
+        return coordX;
+    }
+
+    public void setCoordX(double coordX) {
+        this.coordX = coordX;
+    }
+
+    public double getCoordY() {
+        return coordY;
+    }
+
+    public void setCoordY(double coordY) {
+        this.coordY = coordY;
     }
 
     public String getName() {
@@ -42,22 +59,6 @@ public class Bicycle {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getCoordX() {
-        return coordX;
-    }
-
-    public void setCoordX(String coordX) {
-        this.coordX = coordX;
-    }
-
-    public String getCoordY() {
-        return coordY;
-    }
-
-    public void setCoordY(String coordY) {
-        this.coordY = coordY;
     }
 
     public String getStatus() {
