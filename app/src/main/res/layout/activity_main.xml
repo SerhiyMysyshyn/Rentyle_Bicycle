@@ -13,6 +13,24 @@
         android:layout_height="match_parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:visibility="visible"
+        app:backgroundTint="@color/colorCustomItem"
+        app:rippleColor="@color/black"
+        app:srcCompat="@drawable/ic_sort"
+        app:tint="@color/white"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,7 +62,7 @@
         android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
-        app:srcCompat="@drawable/ic_gps_notfixed"
+        app:srcCompat="@drawable/ic_gps_off"
         app:tint="@color/white"
         tools:ignore="SpeakableTextPresentCheck" />
 
@@ -58,8 +76,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="144dp"
         android:layout_marginBottom="16dp"
-        android:visibility="visible"
         android:clickable="true"
+        android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
         app:srcCompat="@drawable/ic_map"
@@ -70,17 +88,62 @@
         android:id="@+id/openSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:visibility="visible"
         android:clickable="true"
+        android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
         app:srcCompat="@drawable/ic_action_bike"
+        tools:ignore="SpeakableTextPresentCheck"
         app:tint="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/progressBar3"
+        android:layout_width="150dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/custom_round_drawable"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="75dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="12sp"
+            app:srcCompat="@drawable/bicycle"
+            app:tint="@color/white" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-34dp"
+            android:orientation="horizontal">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="17dp"
+                android:indeterminateTint="@color/blue" />
+
+            <ProgressBar
+                android:id="@+id/progressBar2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:indeterminateTint="@color/yellow" />
+        </LinearLayout>
+    </LinearLayout>
 
 </RelativeLayout>

@@ -1,11 +1,10 @@
-package com.aventador.bicyclerental.settingFragment.list;
+package com.aventador.bicyclerental.selectFragment.list;
 
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class ListClickListener  implements RecyclerView.OnItemTouchListener {

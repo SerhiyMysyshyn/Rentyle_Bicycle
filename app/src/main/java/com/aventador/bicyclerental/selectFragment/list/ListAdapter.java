@@ -1,4 +1,4 @@
-package com.aventador.bicyclerental.settingFragment.list;
+package com.aventador.bicyclerental.selectFragment.list;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.aventador.bicyclerental.Bicycle;
 import com.aventador.bicyclerental.R;
 
 import java.util.ArrayList;
@@ -51,13 +50,13 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder>{
     private Drawable getTypeDrawable(String type){
         Drawable newDraw = null;
         switch (type){
-            case "Міські":
+            case "City":
                 newDraw = context.getDrawable(R.drawable.ic_city);
                 break;
-            case "Електро":
+            case "Electro":
                 newDraw = context.getDrawable(R.drawable.ic_electro_bike);
                 break;
-            case "Дитячі":
+            case "Kids":
                 newDraw = context.getDrawable(R.drawable.ic_kids);
                 break;
         }
