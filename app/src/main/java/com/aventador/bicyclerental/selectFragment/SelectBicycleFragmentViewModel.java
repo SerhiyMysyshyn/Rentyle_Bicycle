@@ -1,4 +1,4 @@
-package com.aventador.bicyclerental.settingFragment;
+package com.aventador.bicyclerental.selectFragment;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import com.aventador.bicyclerental.settingFragment.list.ListObject;
+import com.aventador.bicyclerental.selectFragment.list.ListObject;
 
 import java.util.List;
 
@@ -27,9 +27,10 @@ public class SelectBicycleFragmentViewModel extends AndroidViewModel {
     }
 
     MutableLiveData<List<ListObject>> listData = new MutableLiveData<>();
+    MutableLiveData<String> bicycleName = new MutableLiveData<>();
 
-    public void setBicycleList(){
-        selectBicycleFragmentRepository.setBicycleList(context)
+    public void setBicycleList(String selectedName){
+        selectBicycleFragmentRepository.setBicycleList(context, selectedName)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DisposableSingleObserver<List<ListObject>>() {
@@ -61,6 +62,20 @@ public class SelectBicycleFragmentViewModel extends AndroidViewModel {
 
                     }
                 });
-    }
 
+        selectBicycleFragmentRepository.getNameByPosition(context, position)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableSingleObserver<String>() {
+                    @Override
+                    public void onSuccess(String s) {
+                        bicycleName.setValue(s);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        bicycleName.setValue(null);
+                    }
+                });
+    }
 }

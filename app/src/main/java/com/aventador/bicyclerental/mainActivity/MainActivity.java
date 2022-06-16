@@ -7,8 +7,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,32 +20,55 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.aventador.bicyclerental.Bicycle;
 import com.aventador.bicyclerental.R;
-import com.aventador.bicyclerental.settingFragment.SelectBicycleFragment;
+import com.aventador.bicyclerental.customDialogs.CustomLoginDialog;
+import com.aventador.bicyclerental.customDialogs.CustomSortDialog;
+import com.aventador.bicyclerental.selectFragment.SelectBicycleFragment;
 import com.aventador.bicyclerental.sharedPreferences.SharedData;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private FloatingActionButton selectBicycle, login, mapMode, myLocation;
+    private MainActivityViewModel mainActivityViewModel;
+
+    private FloatingActionButton selectBicycle, login, mapMode, myLocation, sort;
     private GoogleMap mMap;
     private SharedPreferences preferencesData;
     private String map1, map2, map3, map4;
+    private LinearLayout progressBar;
+
+    private String SELECTED_ITEM_FROM_LIST = "";
+
+    private Marker myMarker;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private Location lastKnownLocation;
+    private Location deviceLastLocation;
     private static final int DEFAULT_ZOOM = 10;
     private final LatLng defaultLocation = new LatLng(48.9226, 24.7103);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,59 +76,165 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         isPermissionGranted();
+        initStrings();
+        initViewComponents();
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        mainActivityViewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
 
-        myLocation = findViewById(R.id.getMyPositionButton);
-        selectBicycle = findViewById(R.id.openSettings);
-        mapMode = findViewById(R.id.selectMapModeButton);
+        mainActivityViewModel.setAllMarkers();
 
-        preferencesData = SharedData.getSharedPreferences(MainActivity.this);
-
-        map1 = getApplicationContext().getResources().getString(R.string.map_main);
-        map2 = getApplicationContext().getResources().getString(R.string.map_hybrid);
-        map3 = getApplicationContext().getResources().getString(R.string.map_satellite);
-        map4 = getApplicationContext().getResources().getString(R.string.map_terrain);
-
-        mapMode.setOnClickListener(new View.OnClickListener() {
+        sort.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                showMapModeDialog();
+            public void onClick(View v) {
+                showSortDialog();
             }
         });
 
-        myLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getDeviceLocation();
-            }
-        });
+        mapMode.setOnClickListener(view -> showMapModeDialog());
+
+        myLocation.setOnClickListener(view -> isLocationAvailable());
 
         selectBicycle.setOnClickListener(v -> {
-            SelectBicycleFragment selectBicycleFragment = new SelectBicycleFragment();
+            SelectBicycleFragment selectBicycleFragment = new SelectBicycleFragment(MainActivity.this);
+            selectBicycleFragment.setSelectedItem(SELECTED_ITEM_FROM_LIST);
             selectBicycleFragment.show(getSupportFragmentManager(), "TAG");
+            selectBicycleFragment.setViewForDisablePossibility(selectBicycleFragment);
+        });
+
+        login.setOnClickListener(v -> showLoginDialog());
+
+    }
+
+
+
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
+
+
+
+    public void loadMap(){
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
+        mapFragment.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setMapType(Integer.parseInt(getMapMode()));
+        LatLng IvanoFrankivsk = new LatLng(48.9226, 24.7103);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(IvanoFrankivsk));
+        mMap.setMinZoomPreference(13);
+
+        mainActivityViewModel.allBicycleList.observe(this, bicycles -> {
+            mMap.clear();
+            if (bicycles != null){
+                for (Bicycle bicycle:bicycles){
+                    if (bicycle.getStatus().equals("parking")){
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(bicycle.getCoordX(), bicycle.getCoordY()))
+                                .title(bicycle.getName() + " №" + bicycle.getSpecID())
+                                .icon(mainActivityViewModel.setBicycleItemIcon(bicycle.getbType())));
+                    }
+                }
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+            }else{
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+            }
+        });
+
+        mMap.setOnMarkerClickListener(marker -> {
+            Toast.makeText(getApplicationContext(), marker.getTitle(), Toast.LENGTH_LONG).show();
+            return false;
+        });
+    }
+
+
+
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
+
+    public void notifyActivityToChangeData(String name){
+        SELECTED_ITEM_FROM_LIST = name;
+        mainActivityViewModel.setMarkersByName(name);
+    }
+
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
+
+
+
+    private void isLocationAvailable() {
+        LocationRequest mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10 * 1000)
+                .setFastestInterval(1 * 1000);
+
+        LocationSettingsRequest.Builder settingsBuilder = new LocationSettingsRequest.Builder().addLocationRequest(mLocationRequest);
+        settingsBuilder.setAlwaysShow(true);
+
+        Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(this).checkLocationSettings(settingsBuilder.build());
+
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                try {
+                    LocationSettingsResponse response = task.getResult(ApiException.class);
+                    myLocation.setImageResource(R.drawable.ic_gps_notfixed);
+                    getDeviceLocation();
+                } catch (ApiException ex) {
+                    myLocation.setImageResource(R.drawable.ic_gps_off);
+                    switch (ex.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            try {
+                                ResolvableApiException resolvableApiException = (ResolvableApiException) ex;
+                                resolvableApiException.startResolutionForResult(MainActivity.this, 222);
+                            } catch (IntentSender.SendIntentException e) {}
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            break;
+                    }
+                }
+            }
         });
     }
 
     private void getDeviceLocation() {
+        progressBar.setVisibility(View.VISIBLE);
+        Task<Location> locationResult = null;
         try {
             if (isPermissionGranted()) {
-                Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            lastKnownLocation = task.getResult();
-                            if (lastKnownLocation != null) {
-                                mMap.addMarker(new MarkerOptions().position(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude())).title("My position"));
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                while (locationResult == null){
+                    System.out.println("[ SYSTEM ] Try to get user location");
+                    locationResult = fusedLocationProviderClient.getLastLocation();
+                    locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful()) {
+                                deviceLastLocation = task.getResult();
+                                System.out.println("[ SYSTEM ] Last saved location (" + deviceLastLocation + ")");
+                                if (deviceLastLocation != null) {
+                                    myLocation.setImageResource(R.drawable.ic_gps_fixed);
+
+                                    myMarker = mMap.addMarker(new MarkerOptions()
+                                            .position(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()))
+                                            .title("My position")
+                                            .icon(mainActivityViewModel.bitmapDescriptorFromVector(R.drawable.ic_baseline_boy_24)));
+
+                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()), DEFAULT_ZOOM));
+                                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                                }else {
+                                    myLocation.setImageResource(R.drawable.ic_gps_notfixed);
+                                }
+                            } else {
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+                                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
                             }
-                        } else {
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
                         }
-                    }
-                });
+                    });
+                }
             }
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage(), e);
@@ -109,6 +242,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
 
     public void showMapModeDialog(){
         final String[] array = {map1, map2, map3, map4};
@@ -138,28 +275,74 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialog.show();
     }
 
-
-
-
-
-
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMapType(Integer.parseInt(getMapMode()));
-        LatLng IvanoFrankivsk = new LatLng(48.9226, 24.7103);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(IvanoFrankivsk));
-        mMap.setMinZoomPreference(12);
+    private void showLoginDialog() {
+        CustomLoginDialog dialog = new CustomLoginDialog(MainActivity.this);
+        View.OnClickListener button_ok_listener = v -> {
+            dialog.cancel();
+            mainActivityViewModel.loginUser(dialog.getUserLastname(), dialog.getUserName(), dialog.getUserPhoneNumber());
+            System.out.println("[ SYSTEM ]: " + dialog.getUserLastname() + " / " + dialog.getUserName() + " / " + dialog.getUserPhoneNumber());
+        };
+        dialog.setListener(button_ok_listener);
+        dialog.show();
     }
 
-    public void loadMap(){
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
-        mapFragment.getMapAsync(this);
+    private void showSortDialog() {
+        SELECTED_ITEM_FROM_LIST = "";
+        CustomSortDialog sortDialog = new CustomSortDialog(MainActivity.this);
+        View.OnClickListener button_show_all_listener = v -> {
+            sortDialog.cancel();
+            mainActivityViewModel.setAllMarkers();
+        };
+
+        View.OnClickListener button_show_city_listener = v -> {
+            sortDialog.cancel();
+            mainActivityViewModel.setCityMarkers();
+        };
+
+        View.OnClickListener button_show_electro_listener = v -> {
+            sortDialog.cancel();
+            mainActivityViewModel.setElectroMarkers();
+        };
+
+        View.OnClickListener button_show_kids_listener = v -> {
+            sortDialog.cancel();
+            mainActivityViewModel.setKidsMarkers();
+        };
+
+        sortDialog.setShowAllMarkersListener(button_show_all_listener);
+        sortDialog.setShowCityMarkersListener(button_show_city_listener);
+        sortDialog.setShowElectroMarkersListener(button_show_electro_listener);
+        sortDialog.setShowKidsMarkersListener(button_show_kids_listener);
+        sortDialog.show();
     }
 
 
 
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
 
+
+
+    public void initStrings(){
+        map1 = getApplicationContext().getResources().getString(R.string.map_main);
+        map2 = getApplicationContext().getResources().getString(R.string.map_hybrid);
+        map3 = getApplicationContext().getResources().getString(R.string.map_satellite);
+        map4 = getApplicationContext().getResources().getString(R.string.map_terrain);
+    }
+
+    public void initViewComponents(){
+        myLocation = findViewById(R.id.getMyPositionButton);
+        selectBicycle = findViewById(R.id.openSettings);
+        mapMode = findViewById(R.id.selectMapModeButton);
+        login = findViewById(R.id.floatingActionButton);
+        sort = findViewById(R.id.floatingActionButton2);
+
+        progressBar = findViewById(R.id.progressBar3);
+
+        preferencesData = SharedData.getSharedPreferences(MainActivity.this);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+    }
 
     public boolean isPermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
@@ -189,6 +372,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }else{
                 finish();
             }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println(">>> "  + requestCode + " / " + resultCode);
+
+        if (requestCode == 222 && resultCode == -1) {
+            myLocation.setImageResource(R.drawable.ic_gps_fixed);
+            getDeviceLocation();
+        } else {
+            Toast.makeText(getApplicationContext(), "To continue you need to turn on GPS!", Toast.LENGTH_LONG).show();
         }
     }
 }
