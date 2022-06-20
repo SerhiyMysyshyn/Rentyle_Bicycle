@@ -30,6 +30,10 @@
         app:tint="@color/white"
         tools:ignore="SpeakableTextPresentCheck" />
 
+
+
+
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
@@ -44,8 +48,8 @@
         android:visibility="visible"
         app:backgroundTint="@color/colorCustomItem"
         app:rippleColor="@color/black"
-        app:srcCompat="@drawable/custom_login_image"
-        app:tint="@color/white"
+        app:srcCompat="@drawable/ic_person_icon"
+        app:tint="@color/red"
         tools:ignore="SpeakableTextPresentCheck" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -102,13 +106,41 @@
         tools:ignore="SpeakableTextPresentCheck"
         app:tint="@color/white" />
 
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="125dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/custom_dark_item_background"
+        android:gravity="center"
+        android:text="00:00:00"
+        android:visibility="gone"
+        android:fontFamily="@font/current_regular"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/stopRental"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_dark_item_background"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:backgroundTint="@color/red"
+        android:visibility="gone"
+        android:text="Завершити" />
+
     <LinearLayout
+        android:id="@+id/walletBallance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/custom_dark_item_background"
         android:layout_marginRight="16dp"
         android:layout_below="@+id/floatingActionButton"
         android:layout_alignParentRight="true"
+        android:visibility="gone"
         android:gravity="center"
         android:orientation="horizontal">
 

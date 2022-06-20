@@ -29,12 +29,13 @@ public class StartRentalBikeFragment extends BottomSheetDialogFragment {
     public String type_DATA;
     public int specID_DATA;
     public String status_DATA;
+    public boolean isUserConnected;
 
     private View.OnClickListener goClickListener;
 
     private ImageView bicycleImage;
-    private TextView name ,type, bikeNumber, status, price;
-    private Button startBtn , time30minBtn, time1hourBtn, time3hourBtn, time6hourBtn, time12hourBtn, time24hourBtn;
+    private TextView name ,type, bikeNumber, status, price, btn_hint, logBtn_hint;
+    private Button startBtn, logBtn, time30minBtn, time1hourBtn, time3hourBtn, time6hourBtn, time12hourBtn, time24hourBtn;
 
     private int SELECT_TIME = 0;
 
@@ -78,12 +79,14 @@ public class StartRentalBikeFragment extends BottomSheetDialogFragment {
         startRentalBikeFragmentViewModel.canRental.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                System.out.println(">>>>> " + aBoolean);
                 if (aBoolean){
                     goClickListener = new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            mainActivity.notifyActivityToChangeData(Double.parseDouble(price.getText().toString()));
+                            //mainActivity.notifyActivityToChangeData(Double.parseDouble(price.getText().toString()));
+
+                            mainActivity.startRental(specID_DATA, name_DATA, SELECT_TIME, Double.parseDouble(price.getText().toString()));
+
                             Toast.makeText(getContext(), "Щасливої дороги!", Toast.LENGTH_LONG).show();
                             startRentalBikeFragment.dismiss();
                         }
@@ -172,6 +175,32 @@ public class StartRentalBikeFragment extends BottomSheetDialogFragment {
 
     public void initViewComponents(View view){
         startBtn = view.findViewById(R.id.start_button);
+        btn_hint = view.findViewById(R.id.textView17);
+
+        logBtn = view.findViewById(R.id.button8);
+        logBtn_hint = view.findViewById(R.id.textView8);
+
+        if (isUserConnected()){
+            startBtn.setVisibility(View.VISIBLE);
+            btn_hint.setVisibility(View.VISIBLE);
+
+            logBtn.setVisibility(View.GONE);
+            logBtn_hint.setVisibility(View.GONE);
+
+        }else{
+            startBtn.setVisibility(View.GONE);
+            btn_hint.setVisibility(View.GONE);
+
+            logBtn.setVisibility(View.VISIBLE);
+            logBtn_hint.setVisibility(View.VISIBLE);
+
+
+            logBtn.setOnClickListener(v -> {
+                mainActivity.notifyActivityToChangeData(true);
+                startRentalBikeFragment.dismiss();
+            });
+        }
+
 
         bicycleImage = view.findViewById(R.id.imageView3);
 
@@ -255,6 +284,14 @@ public class StartRentalBikeFragment extends BottomSheetDialogFragment {
         time6hourBtn.setBackground(getContext().getResources().getDrawable(R.drawable.custom_black_button_background));
         time12hourBtn.setBackground(getContext().getResources().getDrawable(R.drawable.custom_black_button_background));
         time24hourBtn.setBackground(getContext().getResources().getDrawable(R.drawable.custom_black_button_background));
+    }
+
+    public boolean isUserConnected() {
+        return isUserConnected;
+    }
+
+    public void setUserConnected(boolean userConnected) {
+        isUserConnected = userConnected;
     }
 
     public void setViewForDisablePossibility(StartRentalBikeFragment startRentalBikeFragment){

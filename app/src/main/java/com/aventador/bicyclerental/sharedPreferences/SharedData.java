@@ -38,16 +38,4 @@ public class SharedData {
     public static String getMapMode() {
         return preferences.getString(MAP_MODE, "1");
     }
-
-
-    public static void saveRentalCoinsCount(double count) {
-        editor = preferences.edit();
-        editor.putString(RENTAL_COINS_COUNT, String.valueOf(count));
-        editor.apply();
-    }
-
-    public static double getRentalCoinsCount() {
-        return Double.parseDouble(preferences.getString(RENTAL_COINS_COUNT, "0.0"));
-    }
-
 }

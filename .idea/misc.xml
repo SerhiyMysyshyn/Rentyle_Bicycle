@@ -14,6 +14,7 @@
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_gps_off.xml" value="0.343" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_kids.xml" value="0.343" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_map.xml" value="0.251" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_person_icon.xml" value="0.196" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable-anydpi/ic_sort.xml" value="0.2835" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_black_button_background.xml" value="0.3515" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/custom_black_button_background_selected.xml" value="0.316" />
@@ -29,12 +30,14 @@
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/ic_baseline_electric_bike_24.xml" value="0.2995" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/ic_baseline_fmd_good_24.xml" value="0.2995" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/ic_baseline_kids_24.xml" value="0.2995" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/drawable/ic_baseline_person_pin_24.xml" value="0.196" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/activity_splash_screen.xml" value="0.33" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_add_coins_dialog.xml" value="0.33" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_list_item.xml" value="0.5" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_login_dialog.xml" value="0.36666666666666664" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_sort_dialog.xml" value="0.36666666666666664" />
+        <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/custom_user_info_dialog.xml" value="0.36666666666666664" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/fragment_settings.xml" value="0.36666666666666664" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/select_bike_dialog_view.xml" value="0.36666666666666664" />
         <entry key="..\:/Bicycle_Rental/app/src/main/res/layout/start_rental_bike_dialog_view.xml" value="0.33" />
