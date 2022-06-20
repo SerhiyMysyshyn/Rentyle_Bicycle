@@ -5,20 +5,31 @@
 
     <string name="choose_bike">Виберіть велосипед</string>
     <string name="choose_time">Виберіть термін оренди</string>
-    <string name="run_bike">Підійдіть до найближчого із вибраних велосипедів та натисніть кнопку «Поїхали»</string>
+    <string name="run_bike">Підійдіть до вибраного велосипеду та натисніть кнопку «Поїхали»</string>
+
+    <string name="run_login_first">Спершу слід авторизуватись! Після цього ви зможете взяти вибраний велосипед в прокат!</string>
+
     <string name="run">Поїхали</string>
 
     <string name="dialogLoginTitle">Вхід в обліковий запис</string>
     <string name="done">Готово</string>
+    <string name="exit">Назад</string>
 
     <string name="show_all">Показати всі</string>
     <string name="show_electric">Показати електричні</string>
     <string name="show_city">Показати міські</string>
     <string name="show_kids">Показати дитячі</string>
 
+    <string name="amount_to_pay">Сума до сплати:</string>
+    <string name="pay">Оплатити</string>
+
     <string name="firstName">Ім\'я</string>
-    <string name="lastName">Прізвище</string>
+    <string name="password">Пароль</string>
+    <string name="bike">Велосипед</string>
+    <string name="wallet">Гаманець</string>
     <string name="phoneNumber">Моб. номер</string>
+
+    <string name="error_login_or_password">Ви ввели неправильний логін або пароль!</string>
 
     <string name="map_main">Основна карта</string>
     <string name="map_hybrid">Супутникові зображення з дорогами та мітками</string>

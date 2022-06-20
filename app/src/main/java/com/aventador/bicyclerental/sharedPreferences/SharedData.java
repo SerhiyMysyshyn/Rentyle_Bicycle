@@ -8,6 +8,9 @@ public class SharedData {
     private static SharedPreferences.Editor editor;
 
     public static String MAP_MODE = "1";
+    public static String RENTAL_COINS_COUNT = "0.0";
+
+    public static int RENTAL_COIN_RATE = 5;
 
     public static SharedPreferences getSharedPreferences(Context context) {
         if (preferences == null) {
@@ -35,5 +38,4 @@ public class SharedData {
     public static String getMapMode() {
         return preferences.getString(MAP_MODE, "1");
     }
-
 }

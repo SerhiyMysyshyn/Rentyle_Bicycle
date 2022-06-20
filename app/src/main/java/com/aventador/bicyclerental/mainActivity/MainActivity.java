@@ -1,5 +1,6 @@
 package com.aventador.bicyclerental.mainActivity;
 
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.RENTAL_COIN_RATE;
 import static com.aventador.bicyclerental.sharedPreferences.SharedData.getMapMode;
 import static com.aventador.bicyclerental.sharedPreferences.SharedData.saveMapMode;
 
@@ -11,24 +12,31 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aventador.bicyclerental.Bicycle;
 import com.aventador.bicyclerental.R;
+import com.aventador.bicyclerental.User;
+import com.aventador.bicyclerental.customDialogs.CustomAddCoinsDialog;
+import com.aventador.bicyclerental.customDialogs.CustomUserInfoDialog;
+import com.aventador.bicyclerental.startRentalBikeFragment.StartRentalBikeFragment;
 import com.aventador.bicyclerental.customDialogs.CustomLoginDialog;
 import com.aventador.bicyclerental.customDialogs.CustomSortDialog;
-import com.aventador.bicyclerental.selectFragment.SelectBicycleFragment;
+import com.aventador.bicyclerental.selectBicycleFragment.SelectBicycleFragment;
 import com.aventador.bicyclerental.sharedPreferences.SharedData;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -49,20 +57,41 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     private MainActivityViewModel mainActivityViewModel;
 
+    private boolean USER_CONNECTED = false;
+    private User mainUser;
+
+    private Button stopRental;
     private FloatingActionButton selectBicycle, login, mapMode, myLocation, sort;
     private GoogleMap mMap;
+    private LinearLayout walletBallance;
     private SharedPreferences preferencesData;
     private String map1, map2, map3, map4;
     private LinearLayout progressBar;
+    private TextView addRentalCoins, rentalCoinsCount, timer;
 
     private String SELECTED_ITEM_FROM_LIST = "";
 
+    private List<Bicycle> markersList = new ArrayList<>();
+
     private Marker myMarker;
+
+    private double RC_COUNT = 0.0;
+    private String BIKE_NAME;
+    private String BIKE_NUMBER;
+
+    private boolean START_RENTAL_MODE = false;
+
+    private String selectedMarkerTitle;
+    private String selectedMarkerName;
+    private String selectedMarkerType;
+    private int selectedMarkerBicycleNumber;
+    private String selectedMarkerStatus;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location deviceLastLocation;
@@ -83,12 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mainActivityViewModel.setAllMarkers();
 
-        sort.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showSortDialog();
-            }
-        });
+        sort.setOnClickListener(v -> showSortDialog());
 
         mapMode.setOnClickListener(view -> showMapModeDialog());
 
@@ -101,11 +125,203 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             selectBicycleFragment.setViewForDisablePossibility(selectBicycleFragment);
         });
 
-        login.setOnClickListener(v -> showLoginDialog());
+        login.setOnClickListener(v -> {
+            if (!USER_CONNECTED){
+                showLoginDialog();
+            }else{
+                showUserInfoDialog();
+            }
 
+        });
+
+        addRentalCoins.setOnClickListener(v -> showPayDialog());
+
+
+
+//------------------------------------------------------------------------------------------------------------
+//---- STOP RENTAL -------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------
+        stopRental.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Увага!");
+                builder.setMessage("Ви дійсно бажаєте зупинити поїздку? \n\n\nЯкщо Ви впевнені у своєму виборі - припаркуйте велосипед у безпечному місці та натисніть «ТАК»");
+                builder.setPositiveButton("Так", (dialog, which) -> {
+                    mainActivityViewModel.updateUserInformationBeforeRunning(mainUser.getSpecID());
+                    progressBar.setVisibility(View.VISIBLE);
+                });
+                builder.setNeutralButton("Ні", (dialog, which) -> {
+                    dialog.cancel();
+                });
+                builder.show();
+            }
+        });
+
+        mainActivityViewModel.updatedUserDataForStopProcess.observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                mainUser = user;
+                mainActivityViewModel.stopRentalBike(mainUser.getBikeNumber());
+            }
+        });
+
+        mainActivityViewModel.updateBikeStatusSTOP.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean){
+                    mainActivityViewModel.stopUserBikeStatus(mainUser.getSpecID());
+                }
+            }
+        });
+
+        mainActivityViewModel.updateUserBikeStatusSTOP.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                mainActivityViewModel.stopAllElseRentalProcess(mainUser.getBikeNumber());
+            }
+        });
+
+        mainActivityViewModel.stopRental.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                START_RENTAL_MODE = false;
+
+                stopRental.setVisibility(View.GONE);
+
+                sort.setVisibility(View.VISIBLE);
+                timer.setVisibility(View.GONE);
+                selectBicycle.setVisibility(View.VISIBLE);
+
+                BIKE_NAME = null;
+                BIKE_NUMBER = "0";
+
+                mMap.clear();
+                loadMap();
+
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
+//------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------------------------------------------
+//---- START RENTAL ------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------
+        mainActivityViewModel.coinsCount.observe(this, new Observer<Double>() {
+            @Override
+            public void onChanged(Double aDouble) {
+                progressBar.setVisibility(View.VISIBLE);
+                RC_COUNT = aDouble;
+                rentalCoinsCount.setText(String.valueOf(RC_COUNT));
+            }
+        });
+
+        mainActivityViewModel.loginUserData.observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                if (user != null) {
+                    USER_CONNECTED = true;
+                    mainUser = user;
+
+                    BIKE_NAME = mainUser.getBikeName();
+                    BIKE_NUMBER = String.valueOf(mainUser.getBikeNumber());
+
+                    walletBallance.setVisibility(View.VISIBLE);
+                    mainActivityViewModel.setCoins(user.getWallet());
+
+                    progressBar.setVisibility(View.GONE);
+                    login.setImageTintList(ColorStateList.valueOf(getApplicationContext().getResources().getColor(R.color.green)));
+
+                    mainActivityViewModel.isAlreadyRentalBike(mainUser.getSpecID());
+                }
+            }
+        });
+
+        mainActivityViewModel.isAlreadyRentalBike.observe(this, new Observer<List<User>>() {
+            @Override
+            public void onChanged(List<User> list) {
+                if (!list.isEmpty()){
+                    if (list.get(0).getBikeNumber()!=0){
+                        START_RENTAL_MODE = true;
+                        mainActivityViewModel.getMyBicyclePosition();
+                    }
+                    mainUser = list.get(0);
+                }
+
+            }
+        });
+
+
+        mainActivityViewModel.writeOffMoneySuccess.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean){
+                    mainActivityViewModel.updateBikeStatus();
+                }
+            }
+        });
+
+        mainActivityViewModel.updateBikeStatusSuccess.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    mainActivityViewModel.updateUserBikeStatus();
+                }
+            }
+        });
+
+
+        mainActivityViewModel.updateUserBikeStatus.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    mainActivityViewModel.getMyBicyclePosition();
+                }
+            }
+        });
+
+        mainActivityViewModel.getMyBicyclePositionData.observe(this, new Observer<List<Bicycle>>() {
+            @Override
+            public void onChanged(List<Bicycle> list) {
+                mMap.clear();
+                START_RENTAL_MODE = true;
+
+                stopRental.setVisibility(View.VISIBLE);
+
+                sort.setVisibility(View.GONE);
+                timer.setVisibility(View.VISIBLE);
+                selectBicycle.setVisibility(View.GONE);
+
+                if (!list.isEmpty()) {
+                    for (Bicycle bicycle : list){
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(bicycle.getCoordX(), bicycle.getCoordY()))
+                                .title("My bike (" + bicycle.getName() + " №" + bicycle.getSpecID() + ")"));
+                    }
+                }
+                progressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
+//##################################################################################################
+//##################################################################################################
+//##################################################################################################
 
+
+    public void startRental(int bikeNumber, String bikeName, int rentalTime, double rentalPrice){
+        BIKE_NAME = bikeName;
+        BIKE_NUMBER = String.valueOf(bikeNumber);
+        mainActivityViewModel.startRentalBike(mainUser.getSpecID(), bikeNumber, bikeName, rentalTime, RC_COUNT, rentalPrice);
+    }
 
 //##################################################################################################
 //##################################################################################################
@@ -124,29 +340,66 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setMapType(Integer.parseInt(getMapMode()));
         LatLng IvanoFrankivsk = new LatLng(48.9226, 24.7103);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(IvanoFrankivsk));
-        mMap.setMinZoomPreference(13);
+        mMap.setMinZoomPreference(12);
 
-        mainActivityViewModel.allBicycleList.observe(this, bicycles -> {
-            mMap.clear();
-            if (bicycles != null){
-                for (Bicycle bicycle:bicycles){
-                    if (bicycle.getStatus().equals("parking")){
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(bicycle.getCoordX(), bicycle.getCoordY()))
-                                .title(bicycle.getName() + " №" + bicycle.getSpecID())
-                                .icon(mainActivityViewModel.setBicycleItemIcon(bicycle.getbType())));
+        if (!START_RENTAL_MODE){
+            mainActivityViewModel.allBicycleList.observe(this, bicycles -> {
+                markersList = bicycles;
+                mMap.clear();
+                if (bicycles != null){
+                    for (Bicycle bicycle:bicycles){
+                        if (bicycle.getStatus().equals("parking")){
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(bicycle.getCoordX(), bicycle.getCoordY()))
+                                    .title(bicycle.getName() + " №" + bicycle.getSpecID())
+                                    .icon(mainActivityViewModel.setBicycleItemIcon(bicycle.getbType())));
+                        }
                     }
+                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                }else{
+                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
                 }
-                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
-            }else{
-                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
-            }
-        });
+            });
 
-        mMap.setOnMarkerClickListener(marker -> {
-            Toast.makeText(getApplicationContext(), marker.getTitle(), Toast.LENGTH_LONG).show();
-            return false;
-        });
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(@NonNull Marker marker) {
+                    if (START_RENTAL_MODE){
+
+                        //Toast.makeText(getApplicationContext(), "TEST", Toast.LENGTH_LONG).show();
+
+                    }else{
+                        progressBar.setVisibility(View.VISIBLE);
+                        selectedMarkerTitle = marker.getTitle();
+                        new Thread(() -> {
+                            for (Bicycle bicycle : markersList) {
+                                if (selectedMarkerTitle.equals(bicycle.getName() + " №" + bicycle.getSpecID())) {
+                                    selectedMarkerName = bicycle.getName();
+                                    selectedMarkerType = bicycle.getbType();
+                                    selectedMarkerBicycleNumber = bicycle.getSpecID();
+                                    selectedMarkerStatus = bicycle.getStatus();
+                                }
+                            }
+
+                            StartRentalBikeFragment startRentalBikeFragment = new StartRentalBikeFragment(MainActivity.this);
+                            startRentalBikeFragment.setViewForDisablePossibility(startRentalBikeFragment);
+                            startRentalBikeFragment.setUserConnected(USER_CONNECTED);
+                            startRentalBikeFragment.setCountMoney_DATA(RC_COUNT);
+                            startRentalBikeFragment.setName_DATA(selectedMarkerName);
+                            startRentalBikeFragment.setType_DATA(selectedMarkerType);
+                            startRentalBikeFragment.setSpecID_DATA(selectedMarkerBicycleNumber);
+                            startRentalBikeFragment.setStatus_DATA(selectedMarkerStatus);
+                            startRentalBikeFragment.show(MainActivity.this.getSupportFragmentManager(), "TAG2");
+
+                            MainActivity.this.runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                        }).start();
+                    }
+                    return false;
+                }
+            });
+        }
+
+
     }
 
 
@@ -158,6 +411,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void notifyActivityToChangeData(String name){
         SELECTED_ITEM_FROM_LIST = name;
         mainActivityViewModel.setMarkersByName(name);
+    }
+
+    public void notifyActivityToChangeData(boolean loginFirst){
+        if (loginFirst){
+            showLoginDialog();
+        }
     }
 
 //##################################################################################################
@@ -209,29 +468,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 while (locationResult == null){
                     System.out.println("[ SYSTEM ] Try to get user location");
                     locationResult = fusedLocationProviderClient.getLastLocation();
-                    locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            if (task.isSuccessful()) {
-                                deviceLastLocation = task.getResult();
-                                System.out.println("[ SYSTEM ] Last saved location (" + deviceLastLocation + ")");
-                                if (deviceLastLocation != null) {
-                                    myLocation.setImageResource(R.drawable.ic_gps_fixed);
+                    locationResult.addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            deviceLastLocation = task.getResult();
+                            System.out.println("[ SYSTEM ] Last saved location (" + deviceLastLocation + ")");
+                            if (deviceLastLocation != null) {
+                                myLocation.setImageResource(R.drawable.ic_gps_fixed);
 
-                                    myMarker = mMap.addMarker(new MarkerOptions()
-                                            .position(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()))
-                                            .title("My position")
-                                            .icon(mainActivityViewModel.bitmapDescriptorFromVector(R.drawable.ic_baseline_boy_24)));
+                                myMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(deviceLastLocation.getLatitude(),
+                                                deviceLastLocation.getLongitude()))
+                                        .title("My position")
+                                        .icon(mainActivityViewModel.bitmapDescriptorFromVector(R.drawable.ic_baseline_person_pin_24)));
 
-                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()), DEFAULT_ZOOM));
-                                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
-                                }else {
-                                    myLocation.setImageResource(R.drawable.ic_gps_notfixed);
-                                }
-                            } else {
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+                                mMap.moveCamera(CameraUpdateFactory.
+                                        newLatLngZoom(new LatLng(deviceLastLocation.getLatitude(),
+                                                deviceLastLocation.getLongitude()), DEFAULT_ZOOM));
                                 runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                            }else {
+                                myLocation.setImageResource(R.drawable.ic_gps_notfixed);
                             }
+                        } else {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+                            runOnUiThread(() -> progressBar.setVisibility(View.GONE));
                         }
                     });
                 }
@@ -279,8 +538,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         CustomLoginDialog dialog = new CustomLoginDialog(MainActivity.this);
         View.OnClickListener button_ok_listener = v -> {
             dialog.cancel();
-            mainActivityViewModel.loginUser(dialog.getUserLastname(), dialog.getUserName(), dialog.getUserPhoneNumber());
-            System.out.println("[ SYSTEM ]: " + dialog.getUserLastname() + " / " + dialog.getUserName() + " / " + dialog.getUserPhoneNumber());
+            mainActivityViewModel.loginUser(dialog.getUserPassword(), dialog.getUserPhoneNumber());
         };
         dialog.setListener(button_ok_listener);
         dialog.show();
@@ -316,7 +574,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sortDialog.show();
     }
 
+    public void showPayDialog(){
+        CustomAddCoinsDialog customAddCoinsDialog = new CustomAddCoinsDialog(MainActivity.this);
+        View.OnClickListener button_pay_listener = v -> {
+            if (!String.valueOf(customAddCoinsDialog.getInputAmount()).equals("")){
+                customAddCoinsDialog.cancel();
+                mainActivityViewModel.updateCoinsCount(mainUser.getSpecID(), RC_COUNT, customAddCoinsDialog.getInputAmount() * RENTAL_COIN_RATE);
+            }
+        };
+        View.OnClickListener button_exit_listener = v -> {
+            customAddCoinsDialog.cancel();
+        };
+        customAddCoinsDialog.setButtonPayListener(button_pay_listener);
+        customAddCoinsDialog.setButtonExitListener(button_exit_listener);
+        customAddCoinsDialog.show();
+    }
 
+    public void showUserInfoDialog(){
+        CustomUserInfoDialog userInfoDialog = new CustomUserInfoDialog(MainActivity.this);
+        View.OnClickListener button_logout_listener = v -> {
+            userInfoDialog.cancel();
+            USER_CONNECTED = false;
+            START_RENTAL_MODE = false;
+            mainUser = null;
+            RC_COUNT = 0.0;
+            rentalCoinsCount.setText(String.valueOf(RC_COUNT));
+            walletBallance.setVisibility(View.GONE);
+
+            stopRental.setVisibility(View.GONE);
+
+            sort.setVisibility(View.VISIBLE);
+            selectBicycle.setVisibility(View.VISIBLE);
+
+            BIKE_NAME = null;
+            BIKE_NUMBER = "0";
+
+            login.setImageTintList(ColorStateList.valueOf(getApplicationContext().getResources().getColor(R.color.red)));
+
+            loadMap();
+        };
+        View.OnClickListener closeDialog = v -> userInfoDialog.cancel();
+        userInfoDialog.setUserName(mainUser.getName());
+        userInfoDialog.setUserWallet(String.valueOf(RC_COUNT));
+        userInfoDialog.setUserNumber(mainUser.getPhoneNumber());
+        userInfoDialog.setUserPassword(mainUser.getPassword());
+
+        if (Integer.parseInt(BIKE_NUMBER) !=0){
+            userInfoDialog.setUserBike(BIKE_NAME + " №" + BIKE_NUMBER);
+        }else{
+            userInfoDialog.setUserBike(BIKE_NAME);
+        }
+
+        userInfoDialog.setCloseWindowClickListener(closeDialog);
+        userInfoDialog.setLogOutClickListener(button_logout_listener);
+        userInfoDialog.show();
+    }
 
 //##################################################################################################
 //##################################################################################################
@@ -337,6 +649,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapMode = findViewById(R.id.selectMapModeButton);
         login = findViewById(R.id.floatingActionButton);
         sort = findViewById(R.id.floatingActionButton2);
+
+        stopRental = findViewById(R.id.stopRental);
+        timer = findViewById(R.id.timer);
+
+        walletBallance = findViewById(R.id.walletBallance);
+
+        addRentalCoins = findViewById(R.id.textView19);
+        rentalCoinsCount = findViewById(R.id.textView18);
 
         progressBar = findViewById(R.id.progressBar3);
 

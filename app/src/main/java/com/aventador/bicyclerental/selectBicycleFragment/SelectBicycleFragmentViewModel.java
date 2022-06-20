@@ -1,4 +1,4 @@
-package com.aventador.bicyclerental.selectFragment;
+package com.aventador.bicyclerental.selectBicycleFragment;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import com.aventador.bicyclerental.selectFragment.list.ListObject;
+import com.aventador.bicyclerental.selectBicycleFragment.list.ListObject;
 
 import java.util.List;
 

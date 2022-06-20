@@ -1,11 +1,9 @@
-package com.aventador.bicyclerental.selectFragment;
+package com.aventador.bicyclerental.selectBicycleFragment;
 
 import android.content.Context;
-import android.widget.Toast;
 
 import com.aventador.bicyclerental.R;
-import com.aventador.bicyclerental.mainActivity.MainActivity;
-import com.aventador.bicyclerental.selectFragment.list.ListObject;
+import com.aventador.bicyclerental.selectBicycleFragment.list.ListObject;
 
 import java.util.ArrayList;
 import java.util.List;
