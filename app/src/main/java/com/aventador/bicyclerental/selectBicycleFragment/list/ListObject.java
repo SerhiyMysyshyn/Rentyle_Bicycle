@@ -1,4 +1,4 @@
-package com.aventador.bicyclerental.selectFragment.list;
+package com.aventador.bicyclerental.selectBicycleFragment.list;
 
 import android.graphics.drawable.Drawable;
 

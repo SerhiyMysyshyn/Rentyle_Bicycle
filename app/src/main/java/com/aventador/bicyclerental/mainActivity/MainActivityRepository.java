@@ -1,4 +1,7 @@
 package com.aventador.bicyclerental.mainActivity;
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.getRentalCoinsCount;
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.saveRentalCoinsCount;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -53,5 +56,20 @@ public class MainActivityRepository {
                 break;
         }
         return getBitmapDescriptorFromVector(context, resId);
+    }
+
+    public double getCoinsCount(){
+        return getRentalCoinsCount();
+    }
+
+    public double updateCoinsCount(double alreadyHaveCount, double inputCoins){
+        saveRentalCoinsCount(alreadyHaveCount + inputCoins);
+        return getCoinsCount();
+    }
+
+    public double writeOffMoney(double rentalPrice){
+        double availableMoney = getRentalCoinsCount();
+        saveRentalCoinsCount(availableMoney - rentalPrice);
+        return getCoinsCount();
     }
 }

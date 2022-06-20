@@ -1,7 +1,10 @@
 package com.aventador.bicyclerental.mainActivity;
 
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.RENTAL_COIN_RATE;
 import static com.aventador.bicyclerental.sharedPreferences.SharedData.getMapMode;
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.getRentalCoinsCount;
 import static com.aventador.bicyclerental.sharedPreferences.SharedData.saveMapMode;
+import static com.aventador.bicyclerental.sharedPreferences.SharedData.saveRentalCoinsCount;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -21,14 +24,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aventador.bicyclerental.Bicycle;
 import com.aventador.bicyclerental.R;
+import com.aventador.bicyclerental.customDialogs.CustomAddCoinsDialog;
+import com.aventador.bicyclerental.startRentalBikeFragment.StartRentalBikeFragment;
 import com.aventador.bicyclerental.customDialogs.CustomLoginDialog;
 import com.aventador.bicyclerental.customDialogs.CustomSortDialog;
-import com.aventador.bicyclerental.selectFragment.SelectBicycleFragment;
+import com.aventador.bicyclerental.selectBicycleFragment.SelectBicycleFragment;
 import com.aventador.bicyclerental.sharedPreferences.SharedData;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -49,6 +54,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -59,10 +65,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SharedPreferences preferencesData;
     private String map1, map2, map3, map4;
     private LinearLayout progressBar;
+    private TextView addRentalCoins, rentalCoinsCount;
 
     private String SELECTED_ITEM_FROM_LIST = "";
 
+    private List<Bicycle> markersList = new ArrayList<>();
+
     private Marker myMarker;
+
+    private double RC_COUNT = 0.0;
+
+    private String selectedMarkerTitle;
+    private String selectedMarkerName;
+    private String selectedMarkerType;
+    private int selectedMarkerBicycleNumber;
+    private String selectedMarkerStatus;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location deviceLastLocation;
@@ -103,6 +120,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         login.setOnClickListener(v -> showLoginDialog());
 
+        addRentalCoins.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPayDialog();
+            }
+        });
+
+        mainActivityViewModel.setCoins();
+        mainActivityViewModel.coinsCount.observe(this, new Observer<Double>() {
+            @Override
+            public void onChanged(Double aDouble) {
+                RC_COUNT = aDouble;
+                rentalCoinsCount.setText(String.valueOf(RC_COUNT));
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+            }
+        });
+
     }
 
 
@@ -127,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setMinZoomPreference(13);
 
         mainActivityViewModel.allBicycleList.observe(this, bicycles -> {
+            markersList = bicycles;
             mMap.clear();
             if (bicycles != null){
                 for (Bicycle bicycle:bicycles){
@@ -144,7 +179,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         mMap.setOnMarkerClickListener(marker -> {
-            Toast.makeText(getApplicationContext(), marker.getTitle(), Toast.LENGTH_LONG).show();
+            progressBar.setVisibility(View.VISIBLE);
+
+            selectedMarkerTitle = marker.getTitle();
+
+            new Thread(() -> {
+                for (Bicycle bicycle : markersList) {
+                    if (selectedMarkerTitle.equals(bicycle.getName() + " №" + bicycle.getSpecID())) {
+                        selectedMarkerName = bicycle.getName();
+                        selectedMarkerType = bicycle.getbType();
+                        selectedMarkerBicycleNumber = bicycle.getSpecID();
+                        selectedMarkerStatus = bicycle.getStatus();
+                    }
+                }
+
+                StartRentalBikeFragment startRentalBikeFragment = new StartRentalBikeFragment(MainActivity.this);
+                startRentalBikeFragment.setViewForDisablePossibility(startRentalBikeFragment);
+                startRentalBikeFragment.setCountMoney_DATA(RC_COUNT);
+                startRentalBikeFragment.setName_DATA(selectedMarkerName);
+                startRentalBikeFragment.setType_DATA(selectedMarkerType);
+                startRentalBikeFragment.setSpecID_DATA(selectedMarkerBicycleNumber);
+                startRentalBikeFragment.setStatus_DATA(selectedMarkerStatus);
+                startRentalBikeFragment.show(getSupportFragmentManager(), "TAG2");
+
+                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+            }).start();
             return false;
         });
     }
@@ -158,6 +217,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void notifyActivityToChangeData(String name){
         SELECTED_ITEM_FROM_LIST = name;
         mainActivityViewModel.setMarkersByName(name);
+    }
+
+    public void notifyActivityToChangeData(double rentalPrice){
+        mainActivityViewModel.writeOffMoney(rentalPrice);
     }
 
 //##################################################################################################
@@ -209,29 +272,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 while (locationResult == null){
                     System.out.println("[ SYSTEM ] Try to get user location");
                     locationResult = fusedLocationProviderClient.getLastLocation();
-                    locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            if (task.isSuccessful()) {
-                                deviceLastLocation = task.getResult();
-                                System.out.println("[ SYSTEM ] Last saved location (" + deviceLastLocation + ")");
-                                if (deviceLastLocation != null) {
-                                    myLocation.setImageResource(R.drawable.ic_gps_fixed);
+                    locationResult.addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            deviceLastLocation = task.getResult();
+                            System.out.println("[ SYSTEM ] Last saved location (" + deviceLastLocation + ")");
+                            if (deviceLastLocation != null) {
+                                myLocation.setImageResource(R.drawable.ic_gps_fixed);
 
-                                    myMarker = mMap.addMarker(new MarkerOptions()
-                                            .position(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()))
-                                            .title("My position")
-                                            .icon(mainActivityViewModel.bitmapDescriptorFromVector(R.drawable.ic_baseline_boy_24)));
+                                myMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(deviceLastLocation.getLatitude(),
+                                                deviceLastLocation.getLongitude()))
+                                        .title("My position")
+                                        .icon(mainActivityViewModel.bitmapDescriptorFromVector(R.drawable.ic_baseline_boy_24)));
 
-                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(deviceLastLocation.getLatitude(), deviceLastLocation.getLongitude()), DEFAULT_ZOOM));
-                                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
-                                }else {
-                                    myLocation.setImageResource(R.drawable.ic_gps_notfixed);
-                                }
-                            } else {
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+                                mMap.moveCamera(CameraUpdateFactory.
+                                        newLatLngZoom(new LatLng(deviceLastLocation.getLatitude(),
+                                                deviceLastLocation.getLongitude()), DEFAULT_ZOOM));
                                 runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                            }else {
+                                myLocation.setImageResource(R.drawable.ic_gps_notfixed);
                             }
+                        } else {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, DEFAULT_ZOOM));
+                            runOnUiThread(() -> progressBar.setVisibility(View.GONE));
                         }
                     });
                 }
@@ -316,6 +379,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sortDialog.show();
     }
 
+    public void showPayDialog(){
+        progressBar.setVisibility(View.VISIBLE);
+        CustomAddCoinsDialog customAddCoinsDialog = new CustomAddCoinsDialog(MainActivity.this);
+        View.OnClickListener button_pay_listener = v -> {
+            if (!String.valueOf(customAddCoinsDialog.getInputAmount()).equals("")){
+                customAddCoinsDialog.cancel();
+                mainActivityViewModel.updateCoinsCount(RC_COUNT, customAddCoinsDialog.getInputAmount() * RENTAL_COIN_RATE);
+            }
+        };
+        View.OnClickListener button_exit_listener = v -> {
+            customAddCoinsDialog.cancel();
+            progressBar.setVisibility(View.GONE);
+        };
+        customAddCoinsDialog.setButtonPayListener(button_pay_listener);
+        customAddCoinsDialog.setButtonExitListener(button_exit_listener);
+        customAddCoinsDialog.show();
+    }
+
 
 
 //##################################################################################################
@@ -337,6 +418,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapMode = findViewById(R.id.selectMapModeButton);
         login = findViewById(R.id.floatingActionButton);
         sort = findViewById(R.id.floatingActionButton2);
+
+        addRentalCoins = findViewById(R.id.textView19);
+        rentalCoinsCount = findViewById(R.id.textView18);
 
         progressBar = findViewById(R.id.progressBar3);
 

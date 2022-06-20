@@ -40,6 +40,7 @@ public class MainActivityViewModel extends AndroidViewModel {
 
 
     MutableLiveData<List<Bicycle>> allBicycleList = new MutableLiveData<>();
+    MutableLiveData<Double> coinsCount = new MutableLiveData<>();
 
 
 
@@ -138,5 +139,17 @@ public class MainActivityViewModel extends AndroidViewModel {
 
                     }
                 });
+    }
+
+    public void setCoins(){
+        coinsCount.setValue(mainActivityRepository.getCoinsCount());
+    }
+
+    public void updateCoinsCount(double alreadyHaveCount, double inputCoins){
+        coinsCount.setValue(mainActivityRepository.updateCoinsCount(alreadyHaveCount, inputCoins));
+    }
+
+    public void writeOffMoney(double rentalPrice){
+        coinsCount.setValue(mainActivityRepository.writeOffMoney(rentalPrice));
     }
 }

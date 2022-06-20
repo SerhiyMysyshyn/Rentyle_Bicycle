@@ -5,16 +5,20 @@
 
     <string name="choose_bike">Виберіть велосипед</string>
     <string name="choose_time">Виберіть термін оренди</string>
-    <string name="run_bike">Підійдіть до найближчого із вибраних велосипедів та натисніть кнопку «Поїхали»</string>
+    <string name="run_bike">Підійдіть до вибраного велосипеду та натисніть кнопку «Поїхали»</string>
     <string name="run">Поїхали</string>
 
     <string name="dialogLoginTitle">Вхід в обліковий запис</string>
     <string name="done">Готово</string>
+    <string name="exit">Назад</string>
 
     <string name="show_all">Показати всі</string>
     <string name="show_electric">Показати електричні</string>
     <string name="show_city">Показати міські</string>
     <string name="show_kids">Показати дитячі</string>
+
+    <string name="amount_to_pay">Сума до сплати:</string>
+    <string name="pay">Оплатити</string>
 
     <string name="firstName">Ім\'я</string>
     <string name="lastName">Прізвище</string>
